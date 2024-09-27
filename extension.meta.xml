@@ -2,7 +2,7 @@
 <extension id="association_output" status="development" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>Association Output</name>
 	<description>Inline XML</description>
-	<repo type="github">https://github.com/hananils/association_output</repo>
+	<repo type="github">https://github.com/animaux/association_output</repo>
 	<types>
 		<type>Associations</type>
 	</types>
@@ -13,6 +13,27 @@
 		</author>
 	</authors>
 	<releases>
+	  <release version="1.2.7" date="2022-05-17" min="2.7.10" max="2.x.x">
+			- Yet another PHP8 fix
+		</release>
+		<release version="1.2.6" date="2022-05-12" min="2.7.10" max="2.x.x">
+			- Another PHP8 fix
+		</release>
+	  <release version="1.2.5" date="2022-04-04" min="2.7.10" max="2.x.x">
+			- More PHP8 fixes from @Sadie
+		</release>
+	  <release version="1.2.4" date="2022-01-12" min="2.7.10" max="2.x.x">
+			- More PHP8 … undefined array keys
+		</release>
+	  <release version="1.2.3" date="2022-01-12" min="2.7.10" max="2.x.x">
+			- Fix regression in extension.driver.php L306, implode reverse order
+		</release>
+	  <release version="1.2.2" date="2021-12-13" min="2.7.10" max="2.x.x">
+			- PHP8 »Undefined property«-fix (requires PHP7+)
+		</release>
+	  <release version="1.2.1" date="2017-10-17" min="2.5">
+			- Included @tonyarnold’s fix https://github.com/mazedigital/association_output/issues/10#issuecomment-77831551
+		</release>
 		<release version="1.2.0" date="2015-08-25" min="2.5">
 			- Added a datasource property which when set will not run the association output (useful for caching)
 			- Add AssociationOutputPostExecute delegate so other extensions can take actions after the Association Output is added to the XML

@@ -57,7 +57,7 @@ class extension_association_output extends Extension
             if ($callback['context'][0] === 'edit') {
                 $name = $callback['context'][1];
                 $datasource = DatasourceManager::create($name);
-                $settings = $datasource->dsParamINCLUDEDASSOCIATIONS;
+                $settings = isset($datasource->dsParamINCLUDEDASSOCIATIONS) ? $datasource->dsParamINCLUDEDASSOCIATIONS : false;
                 $settings['section_id'] = $datasource->getSource();
             }
 
@@ -79,7 +79,7 @@ class extension_association_output extends Extension
 
                 if (!empty($associations)) {
                     foreach ($associations as $association) {
-                        $options[] = $this->buildElementOptions($association, $settings, $section_id);
+                        $options[] = $this->buildElementOptions($association, $settings ?? null, $section_id);
                     }
                 }
             }
@@ -113,14 +113,15 @@ class extension_association_output extends Extension
         $fields = FieldManager::fetch(null, $association['parent_section_id']);
 
         if (is_array($fields) || $fields instanceof Traversable) {
-            foreach ($fields as $field) {
-                $modes = $field->fetchIncludableElements();
+          foreach ($fields as $field) {
+              $modes = $field->fetchIncludableElements();
 
+              if (is_array($modes) || $modes instanceof Traversable) {
                 foreach ($modes as $mode) {
                     $value = $association['parent_section_id'] . '|#|' . $association['parent_section_field_id']  . '|#|' . $label . '|#|' . $mode;
                     $selected = false;
 
-                    if ($section_id == $settings['section_id'] && isset($settings[$label])) {
+                    if ($section_id == (isset($settings['section_id'])) && isset($settings[$label])) {
                         if (in_array($mode, $settings[$label]['elements'])) {
                             $selected = true;
                         }
@@ -128,7 +129,8 @@ class extension_association_output extends Extension
 
                     $elements[] = array($value, $selected, $mode);
                 }
-            }
+              }
+          }
         }
 
         return array(
@@ -147,6 +149,7 @@ class extension_association_output extends Extension
     public function saveDataSource($context)
     {
         $contents = $context['contents'];
+        $_POST['fields']['includedassociations'] = $_POST['fields']['includedassociations'] ?? null;
         $elements = $_POST['fields']['includedassociations'];
 
         if (isset($elements)) {
@@ -223,12 +226,12 @@ class extension_association_output extends Extension
     public function setOutputParameters($context)
     {
         $datasource = $context['datasource'];
-        $associations = $datasource->dsParamINCLUDEDASSOCIATIONS;
+        $associations = $datasource->dsParamINCLUDEDASSOCIATIONS ?? false;
 
         if (!empty($associations)) {
 
             // Create output parameters, if necessary
-            if (!is_array($datasource->dsParamPARAMOUTPUT)) {
+            if (!is_array($datasource->dsParamPARAMOUTPUT ?? false)) {
                 $datasource->dsParamPARAMOUTPUT = array();
             }
 
@@ -301,12 +304,14 @@ class extension_association_output extends Extension
         $xml = $context['xml'];
         $parameters = $context['param_pool'];
 
-        if (!empty($datasource->dsParamINCLUDEDASSOCIATIONS) && !$datasource->addedAssociationOutput) {
+        if (!empty($datasource->dsParamINCLUDEDASSOCIATIONS) && empty($datasource->addedAssociationOutput ?? false)) {
         
             //only convert xml to object if not an object and has associations
             $xml = is_object($xml) ? $xml : XMLElement::convertFromXMLString($datasource->dsParamROOTELEMENT,$xml);
-
-            if (!$datasource->addedAssociationOutput){
+            
+            $datasource_aaO = $datasource->addedAssociationOutput ?? false;
+            
+            if (!$datasource_aaO) {
                 $datasource->addedAssociationOutput = false;
             }
 
@@ -377,7 +382,7 @@ class extension_association_output extends Extension
      */
     private function fetchEntryIdsByValues(&$entries, &$transcriptions, $field_id)
     {
-        $value_list = "'" . implode($entries, "', '") . "'";
+        $value_list = "'" . implode("', '", $entries) . "'";
         $data = Symphony::Database()->fetch(
             sprintf(
                 "SELECT `entry_id`, `handle`
@@ -409,7 +414,7 @@ class extension_association_output extends Extension
     {
         $childsource = DatasourceManager::create('associations', null, false);
         $childsource->dsParamSOURCE = $settings['section_id'];
-        $childsource->dsParamFILTERS['system:id'] = implode($entry_ids, ', ');
+        $childsource->dsParamFILTERS['system:id'] = implode(', ', $entry_ids);
         $childsource->dsParamINCLUDEDELEMENTS = $settings['elements'];
 
         if ($parentsource->dsParamHTMLENCODE === 'yes') {
@@ -497,10 +502,10 @@ class extension_association_output extends Extension
 
                         if (empty($id)) {
                             $handle = $item->getAttribute('handle');
-                            $id = $transcriptions[$handle];
+                            $id = $transcriptions[$handle] ?? null;
                         }
 
-                        $association = $associated_items[$id];
+                        $association = $associated_items[$id] ?? null;
                         if (!empty($association)) {
                             $item->replaceValue('');
                             $item->setChildren($associated_items[$id]);
